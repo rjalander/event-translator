@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@RequestMapping(value = "/translate")
 public class EventTranslatorController {
 
     @RequestMapping("/")
@@ -15,7 +16,7 @@ public class EventTranslatorController {
         return "Hello EventTranslatorController";
     }
 
-    @RequestMapping(value = "/consume", method = RequestMethod.POST)
+    @RequestMapping(value = "/eiffel", method = RequestMethod.POST)
     public ResponseEntity<Void> translateToEiffelEvent(@RequestBody CloudEvent inputEvent) {
         return ResponseEntity.ok().build();
     }
