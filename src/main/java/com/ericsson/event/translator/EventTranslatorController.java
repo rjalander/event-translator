@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @Slf4j
@@ -46,9 +47,22 @@ public class EventTranslatorController {
             eiffelArtifactPublishedEvent.getMsgParams().getMeta().setVersion("3.0.0");
 
             Location location = new Location();
-            location.setName(inputEvent.getExtension("artifactname").toString());
+            if (inputEvent.getExtension("artifactid") != null){
+                location.setUri(inputEvent.getExtension("artifactid").toString());
+            }else{
+                log.error("CloudEvent extension artifactid is required.");
+                return ResponseEntity.badRequest().build();
+                //throw new ResponseStatusException( HttpStatus.BAD_REQUEST, "CloudEvent extension artifactid is required");
+            }
+            if (inputEvent.getExtension("artifactname") != null){
+                location.setName(inputEvent.getExtension("artifactname").toString());
+            }else{
+                log.error("CloudEvent extension artifactname is required.");
+                return ResponseEntity.badRequest().build();
+                //throw new ResponseStatusException( HttpStatus.BAD_REQUEST, "CloudEvent extension artifactname is required");
+            }
             location.setType(Location.Type.OTHER);
-            location.setUri(inputEvent.getExtension("artifactid").toString());
+
             eiffelArtifactPublishedEvent.getEventParams().getData().getLocations().add(location);
 
             Link link = new Link();
@@ -62,7 +76,7 @@ public class EventTranslatorController {
                 throw new RuntimeException(e);
             }
             log.info("RJR Updated eiffelArtPEventJson - {}", eiffelArtPEventJson);
-            String remRemPublishPostUrl = "http://eiffel-remrem-publish:8080/generateAndPublish?mp=eiffelsemantics&msgType=EiffelArtifactPublishedEvent";
+            String remRemPublishPostUrl = "http://10.1.0.106:8096/generateAndPublish?mp=eiffelsemantics&msgType=EiffelArtifactPublishedEvent";
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
             HttpEntity<String> entity = new HttpEntity<>(eiffelArtPEventJson, headers);
