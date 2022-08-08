@@ -16,7 +16,15 @@
 	<properties>
 		<java.version>1.8</java.version>
 		<cloudevents.version>2.3.0</cloudevents.version>
+		<lombok.version>1.18.20</lombok.version>
+		<jackson-databind.version>2.13.3</jackson-databind.version>
 	</properties>
+	<repositories>
+		<repository>
+			<id>jitpack.io</id>
+			<url>https://jitpack.io</url>
+		</repository>
+	</repositories>
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -33,6 +41,22 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<version>${lombok.version}</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
+			<version>${jackson-databind.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.github.Ericsson</groupId>
+			<artifactId>eiffel-remrem-semantics</artifactId>
+			<version>2.2.3</version>
 		</dependency>
 	</dependencies>
 
