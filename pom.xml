@@ -18,7 +18,7 @@
 		<cloudevents.version>2.3.0</cloudevents.version>
 		<lombok.version>1.18.20</lombok.version>
 		<jackson-databind.version>2.13.3</jackson-databind.version>
-		<cdevent-java-sdk-jar>C:\Users\rjala\.m2\repository\dev\cdevents\cdevents-sdk-java\0.0.1\cdevents-sdk-java-0.0.1.jar</cdevent-java-sdk-jar>
+		<cdevent-java-sdk-jar>${project.basedir}/cdevents-sdk-java-0.0.1.jar</cdevent-java-sdk-jar>
 	</properties>
 	<repositories>
 		<repository>

@@ -126,7 +126,7 @@ public class EventTranslatorController {
             log.info("RJR metaType received {} ", metaType);
             String metaId = metaParams.get("id").asText();
             log.info("RJR metaId received {} ", metaId);
-            if(metaType.equalsIgnoreCase("EiffelArtifactPublishedEvent")){
+            if(metaType.equalsIgnoreCase("EiffelArtifactDeployedEvent")){
                 cdEventCreator.createServiceDeployedEvent(metaId, metaType, "", "");
             }else if (metaType.equalsIgnoreCase("EiffelTestSuiteStartedEvent")){
                 cdEventCreator.createTestSuiteStartedEvent("", "");
