@@ -1,5 +1,6 @@
 package com.ericsson.event.translator;
 
+import com.ericsson.eiffel.semantics.events.CustomData;
 import com.ericsson.eiffel.semantics.events.Link;
 import com.ericsson.eiffel.semantics.events.Location;
 import com.ericsson.event.translator.cdevent.CDEventCreator;
@@ -31,6 +32,8 @@ import java.io.OutputStream;
 import java.io.UncheckedIOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @Slf4j
@@ -135,8 +138,32 @@ public class EventTranslatorController {
             artifactIdentity = inputEvent.getExtension("artifactid").toString().replace("kind-registry:5000", "pkg:github/sig-events");
             log.info("Received latest artifact image from event {} ", artifactIdentity);
         }
-
         eiffelArtifactCreatedEvent.getEventParams().getData().setIdentity(artifactIdentity);
+
+        if (inputEvent.getExtension("artifactid") != null){
+            CustomData customData = new CustomData();
+            customData.setKey("artifactid");
+            customData.setValue(inputEvent.getExtension("artifactid"));
+            eiffelArtifactCreatedEvent.getEventParams().getData().getCustomData().add(customData);
+        }else{
+            //Adding dummy values for testing
+            CustomData customData = new CustomData();
+            customData.setKey("artifactid");
+            customData.setValue("kind-registry:5000/cdevent/poc@sha256:9f4a3831a7e99ae6c86182eca271c0be07fecf366185b5702e54a407fa788410");
+            eiffelArtifactCreatedEvent.getEventParams().getData().getCustomData().add(customData);
+        }
+        if (inputEvent.getExtension("artifactname") != null){
+            CustomData customData = new CustomData();
+            customData.setKey("artifactname");
+            customData.setValue(inputEvent.getExtension("artifactname"));
+            eiffelArtifactCreatedEvent.getEventParams().getData().getCustomData().add(customData);
+        }else{
+            //Adding dummy values for testing
+            CustomData customData = new CustomData();
+            customData.setKey("artifactname");
+            customData.setValue("poc");
+            eiffelArtifactCreatedEvent.getEventParams().getData().getCustomData().add(customData);
+        }
 
         try {
             eiffelArtCEventJson = objectMapper.writeValueAsString(eiffelArtifactCreatedEvent);
@@ -197,25 +224,47 @@ public class EventTranslatorController {
         //2. build cdevent using Java-sdk by using the eiffelEventJson
         //3. send cdevent to knative event broker
         log.info("IN translateToCDEvent received eiffelEventJson {} ", eiffelEventJson);
+        String artifactName = "";
+        String artifactId = "";
+        String contextId = "";
+        String triggerId = "";
         try {
             JsonNode jsonNode = objectMapper.readTree(eiffelEventJson);
             JsonNode metaList = jsonNode.get("mydata").get(0);
             String eiffelEvent = metaList.get("fullaggregation").textValue();
             JsonNode eiffelEventNode = objectMapper.readTree(eiffelEvent);
             JsonNode metaParams = eiffelEventNode.get("meta");
-            String metaType = metaParams.get("type").asText();
-            log.info("RJR metaType received {} ", metaType);
-            String metaId = metaParams.get("id").asText();
-            log.info("RJR metaId received {} ", metaId);
-            if(metaType.equalsIgnoreCase("EiffelArtifactDeployedEvent")){
-                cdEventCreator.createServiceDeployedEvent(metaId, metaType, "", "");
-            }else if (metaType.equalsIgnoreCase("EiffelTestSuiteStartedEvent")){
-                cdEventCreator.createTestSuiteStartedEvent("", "");
-            }else if (metaType.equalsIgnoreCase("EiffelTestSuiteFinishedEvent")){
-                cdEventCreator.createTestSuiteFinishedEvent("", "");
+            String eventName = metaParams.get("type").asText();
+            log.info("RJR eventName received {} ", eventName);
+            String eventId = metaParams.get("id").asText();
+            log.info("RJR eventId received {} ", eventId);
+            JsonNode dataParams = eiffelEventNode.get("data");
+
+            Map<String,String> customDataMap = new HashMap<>();
+            JsonNode customDataParams = dataParams.get("customData");
+            customDataParams.elements().forEachRemaining((data) -> {
+                if (data.get("key").asText().equalsIgnoreCase("artifactid")){
+                    customDataMap.put("artifactId", data.get("value").asText());
+                }else if(data.get("key").asText().equalsIgnoreCase("artifactname")){
+                    customDataMap.put("artifactName", data.get("value").asText());
+                }
+            });
+
+            if (!customDataMap.isEmpty()){
+                artifactId = customDataMap.get("artifactId");
+                artifactName = customDataMap.get("artifactName");
+                System.out.println("customDataMap artifactName---> " +artifactName);
+                System.out.println("customDataMap artifactId---> " +artifactId);
             }
 
-            JsonNode dataParams = eiffelEventNode.get("data");
+            if(eventName.equalsIgnoreCase("EiffelArtifactDeployedEvent")){
+                cdEventCreator.createServiceDeployedEvent(eventId, eventName, contextId, triggerId);
+            }else if (eventName.equalsIgnoreCase("EiffelTestSuiteStartedEvent")){
+                cdEventCreator.createTestSuiteStartedEvent(contextId, triggerId);
+            }else if (eventName.equalsIgnoreCase("EiffelTestSuiteFinishedEvent")){
+                cdEventCreator.createTestSuiteFinishedEvent(eventId, eventName, contextId, triggerId, artifactName, artifactId);
+            }
+
             JsonNode linkParams = eiffelEventNode.get("links");
             String templateName = eiffelEventNode.get("TemplateName").asText();
         } catch (Exception e) {

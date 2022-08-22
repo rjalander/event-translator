@@ -59,20 +59,22 @@ public class CDEventCreator {
         log.info("TestSuiteStarted event sent to events-broker URL - {}", BROKER_SINK);
     }
 
-    public void createTestSuiteFinishedEvent(String contextId, String triggerId)
+    public void createTestSuiteFinishedEvent(String eventId, String eventName, String contextId, String triggerId, String artifactName, String artifactId)
             throws IOException {
-        log.info("Create TestSuiteStarted event and send to knative events-broker URL - {}", BROKER_SINK);
+        log.info("Create TestSuiteFinished event and send to knative events-broker URL - {}", BROKER_SINK);
         CDEventData data = new CDEventData();
-        data.setEventId("");
-        data.setEventName("");
+        data.setEventId(eventId);
+        data.setEventName(eventName);
         data.setContextId(contextId);
         data.setTriggerId(triggerId);
-        data.setSubject("poc");
+        data.setSubject("cdevent_poc");
+        data.setArtifactName(artifactName);
+        data.setArtifactId(artifactId);
         objectMapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
         CloudEvent cloudEvent = CDEventTypes.createTestEvent(CDEventEnums.TestSuiteFinishedEventV1.getEventType(), "testSuiteId", "poc", "3.0.0", objectMapper.writeValueAsString(data));
         sendCloudEvent(cloudEvent);
-        log.info("cloudEvent testSuite started Data {} ", cloudEvent.getData());
-        log.info("TestSuiteStarted event sent to events-broker URL - {}", BROKER_SINK);
+        log.info("cloudEvent testSuite finished Data {} ", cloudEvent.getData());
+        log.info("TestSuiteFinished event sent to events-broker URL - {}", BROKER_SINK);
     }
 
     public void sendCloudEvent(CloudEvent ceToSend) throws IOException {

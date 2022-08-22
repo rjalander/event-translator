@@ -8,6 +8,10 @@ public class CDEventData {
     private String triggerId;
     private String subject;
 
+    private String artifactId;
+
+    private String artifactName;
+
     public String getEventId() {
         return eventId;
     }
@@ -46,5 +50,21 @@ public class CDEventData {
 
     public void setSubject(String subject) {
         this.subject = subject;
+    }
+
+    public String getArtifactId() {
+        return artifactId;
+    }
+
+    public void setArtifactId(String artifactId) {
+        this.artifactId = artifactId;
+    }
+
+    public String getArtifactName() {
+        return artifactName;
+    }
+
+    public void setArtifactName(String artifactName) {
+        this.artifactName = artifactName;
     }
 }
