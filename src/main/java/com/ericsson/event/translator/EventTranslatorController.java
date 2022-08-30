@@ -1,9 +1,11 @@
 package com.ericsson.event.translator;
 
 import com.ericsson.eiffel.semantics.events.CustomData;
+import com.ericsson.eiffel.semantics.events.EiffelActivityFinishedEventOutcome;
 import com.ericsson.eiffel.semantics.events.Link;
 import com.ericsson.eiffel.semantics.events.Location;
 import com.ericsson.event.translator.cdevent.CDEventCreator;
+import com.ericsson.event.translator.eiffel.events.EiffelActivityFinishedEvent;
 import com.ericsson.event.translator.eiffel.events.EiffelArtifactCreatedEvent;
 import com.ericsson.event.translator.eiffel.events.EiffelArtifactPublishedEvent;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -42,6 +44,8 @@ public class EventTranslatorController {
 
     private static final String EIFFEL_ART_PUBLISHED = "EiffelArtifactPublishedEvent";
     private static final String EIFFEL_ART_CREATED = "EiffelArtifactCreatedEvent";
+    private static final String EIFFEL_ACTIVITY_FINISHED = "EiffelActivityFinishedEvent";
+
     @Autowired
     private ObjectMapper objectMapper;
     @Autowired
@@ -60,7 +64,21 @@ public class EventTranslatorController {
         //2. Fill in all the required details from CloudEvent and build the Eiffel event (as event.json)
         //3. curl -H "Content-Type: application/json" -X POST --data @event.json  "http://eiffel-remrem-publish:8080/generateAndPublish?mp=eiffelsemantics&msgType=EiffelArtifactPublishedEvent"
 
-        if (inputEvent.getType().equals(CDEventEnums.ArtifactPublishedEventV1.getEventType())) {
+        if (inputEvent.getType().equals(CDEventEnums.PipelineRunFinishedEventV1.getEventType())) {
+            log.info("Received Pipelinerun finished CDEvent - {} ", CDEventEnums.PipelineRunFinishedEventV1.getEventType());
+            String eiffelActFEventJson = buildEiffelActivityFinishedEvent(inputEvent);
+            if (eiffelActFEventJson.equals("")){
+                log.error("Error translating to eiffelActFEventJson");
+                return ResponseEntity.badRequest().build();
+            }
+            HttpStatus response = sendEiffelEventToRemRemPublish(eiffelActFEventJson, EIFFEL_ACTIVITY_FINISHED);
+            if (response == HttpStatus.OK) {
+                log.info("The result for sending Eiffel ActF event from REMReM Publish is: " + response);
+            }else{
+                log.error("Error sending Eiffel ActF event to REMReM Publish response is {} ", response);
+                ResponseEntity.internalServerError().build();
+            }
+        }else if (inputEvent.getType().equals(CDEventEnums.ArtifactPublishedEventV1.getEventType())) {
             log.info("Received Artifact published CDEvent - {} ", CDEventEnums.ArtifactPublishedEventV1.getEventType());
             String eiffelArtPEventJson = buildEiffelArtifactPublishedEvent(inputEvent);
             if (eiffelArtPEventJson.equals("")){
@@ -168,11 +186,61 @@ public class EventTranslatorController {
         try {
             eiffelArtCEventJson = objectMapper.writeValueAsString(eiffelArtifactCreatedEvent);
         } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
+           throw new RuntimeException(e);
         }
         log.info("Updated eiffelArtCEventJson - {}", eiffelArtCEventJson);
 
         return eiffelArtCEventJson;
+    }
+
+    private String buildEiffelActivityFinishedEvent(CloudEvent inputEvent) {
+        String eiffelActFEventJson = "";
+        EiffelActivityFinishedEvent eiffelActFEvent = new EiffelActivityFinishedEvent();
+        eiffelActFEvent.getMsgParams().getMeta().setType("EiffelActivityFinishedEvent");
+        eiffelActFEvent.getMsgParams().getMeta().setVersion("3.0.0");
+
+        Link link = new Link();
+        link.setType("ACTIVITY_EXECUTION");
+        link.setTarget(inputEvent.getId());
+        eiffelActFEvent.getEventParams().getLinks().add(link);
+
+        EiffelActivityFinishedEventOutcome outcome = new EiffelActivityFinishedEventOutcome();
+        outcome.setConclusion(EiffelActivityFinishedEventOutcome.Conclusion.SUCCESSFUL);
+        outcome.setDescription("Activity execution is success");
+        eiffelActFEvent.getEventParams().getData().setOutcome(outcome);
+
+        if (inputEvent.getExtension("artifactid") != null){
+            CustomData customData = new CustomData();
+            customData.setKey("artifactid");
+            customData.setValue(inputEvent.getExtension("artifactid"));
+            eiffelActFEvent.getEventParams().getData().getCustomData().add(customData);
+        }else{
+            //Adding dummy values for testing
+            CustomData customData = new CustomData();
+            customData.setKey("artifactid");
+            customData.setValue("kind-registry:5000/cdevent/poc@sha256:9f4a3831a7e99ae6c86182eca271c0be07fecf366185b5702e54a407fa788410");
+            eiffelActFEvent.getEventParams().getData().getCustomData().add(customData);
+        }
+        if (inputEvent.getExtension("artifactname") != null){
+            CustomData customData = new CustomData();
+            customData.setKey("artifactname");
+            customData.setValue(inputEvent.getExtension("artifactname"));
+            eiffelActFEvent.getEventParams().getData().getCustomData().add(customData);
+        }else{
+            //Adding dummy values for testing
+            CustomData customData = new CustomData();
+            customData.setKey("artifactname");
+            customData.setValue("poc");
+            eiffelActFEvent.getEventParams().getData().getCustomData().add(customData);
+        }
+
+        try {
+            eiffelActFEventJson = objectMapper.writeValueAsString(eiffelActFEvent);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+        log.info("Updated eiffelActFEvent - {}", eiffelActFEventJson);
+        return eiffelActFEventJson;
     }
 
     private String buildEiffelArtifactPublishedEvent(CloudEvent inputEvent) {
