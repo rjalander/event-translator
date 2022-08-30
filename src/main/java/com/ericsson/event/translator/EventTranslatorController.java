@@ -34,6 +34,7 @@ import java.io.OutputStream;
 import java.io.UncheckedIOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -195,46 +196,50 @@ public class EventTranslatorController {
 
     private String buildEiffelActivityFinishedEvent(CloudEvent inputEvent) {
         String eiffelActFEventJson = "";
-        EiffelActivityFinishedEvent eiffelActFEvent = new EiffelActivityFinishedEvent();
-        eiffelActFEvent.getMsgParams().getMeta().setType("EiffelActivityFinishedEvent");
-        eiffelActFEvent.getMsgParams().getMeta().setVersion("3.0.0");
-
-        Link link = new Link();
-        link.setType("ACTIVITY_EXECUTION");
-        link.setTarget(inputEvent.getId());
-        eiffelActFEvent.getEventParams().getLinks().add(link);
-
-        EiffelActivityFinishedEventOutcome outcome = new EiffelActivityFinishedEventOutcome();
-        outcome.setConclusion(EiffelActivityFinishedEventOutcome.Conclusion.SUCCESSFUL);
-        outcome.setDescription("Activity execution is success");
-        eiffelActFEvent.getEventParams().getData().setOutcome(outcome);
-
-        if (inputEvent.getExtension("artifactid") != null){
-            CustomData customData = new CustomData();
-            customData.setKey("artifactid");
-            customData.setValue(inputEvent.getExtension("artifactid"));
-            eiffelActFEvent.getEventParams().getData().getCustomData().add(customData);
-        }else{
-            //Adding dummy values for testing
-            CustomData customData = new CustomData();
-            customData.setKey("artifactid");
-            customData.setValue("kind-registry:5000/cdevent/poc@sha256:9f4a3831a7e99ae6c86182eca271c0be07fecf366185b5702e54a407fa788410");
-            eiffelActFEvent.getEventParams().getData().getCustomData().add(customData);
-        }
-        if (inputEvent.getExtension("artifactname") != null){
-            CustomData customData = new CustomData();
-            customData.setKey("artifactname");
-            customData.setValue(inputEvent.getExtension("artifactname"));
-            eiffelActFEvent.getEventParams().getData().getCustomData().add(customData);
-        }else{
-            //Adding dummy values for testing
-            CustomData customData = new CustomData();
-            customData.setKey("artifactname");
-            customData.setValue("poc");
-            eiffelActFEvent.getEventParams().getData().getCustomData().add(customData);
-        }
 
         try {
+            String ceDataJsonString =
+                    new String(inputEvent.getData().toBytes(), StandardCharsets.UTF_8);
+            Map<String, Object> ceDataMap = objectMapper.readValue(ceDataJsonString, HashMap.class);
+
+            EiffelActivityFinishedEvent eiffelActFEvent = new EiffelActivityFinishedEvent();
+            eiffelActFEvent.getMsgParams().getMeta().setType("EiffelActivityFinishedEvent");
+            eiffelActFEvent.getMsgParams().getMeta().setVersion("3.0.0");
+
+            Link link = new Link();
+            link.setType("ACTIVITY_EXECUTION");
+            link.setTarget(inputEvent.getId());
+            eiffelActFEvent.getEventParams().getLinks().add(link);
+
+            EiffelActivityFinishedEventOutcome outcome = new EiffelActivityFinishedEventOutcome();
+            outcome.setConclusion(EiffelActivityFinishedEventOutcome.Conclusion.SUCCESSFUL);
+            outcome.setDescription("Activity execution is success");
+            eiffelActFEvent.getEventParams().getData().setOutcome(outcome);
+
+            if (ceDataMap.get("artifactId")  != null){
+                CustomData customData = new CustomData();
+                customData.setKey("artifactid");
+                customData.setValue(ceDataMap.get("artifactId"));
+                eiffelActFEvent.getEventParams().getData().getCustomData().add(customData);
+            }else{
+                //Adding dummy values for testing
+                CustomData customData = new CustomData();
+                customData.setKey("artifactid");
+                customData.setValue("kind-registry:5000/cdevent/poc@sha256:9f4a3831a7e99ae6c86182eca271c0be07fecf366185b5702e54a407fa788410");
+                eiffelActFEvent.getEventParams().getData().getCustomData().add(customData);
+            }
+            if (ceDataMap.get("artifactName") != null){
+                CustomData customData = new CustomData();
+                customData.setKey("artifactname");
+                customData.setValue(ceDataMap.get("artifactName"));
+                eiffelActFEvent.getEventParams().getData().getCustomData().add(customData);
+            }else{
+                //Adding dummy values for testing
+                CustomData customData = new CustomData();
+                customData.setKey("artifactname");
+                customData.setValue("poc");
+                eiffelActFEvent.getEventParams().getData().getCustomData().add(customData);
+            }
             eiffelActFEventJson = objectMapper.writeValueAsString(eiffelActFEvent);
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
