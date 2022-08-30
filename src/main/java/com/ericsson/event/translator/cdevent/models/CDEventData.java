@@ -67,4 +67,17 @@ public class CDEventData {
     public void setArtifactName(String artifactName) {
         this.artifactName = artifactName;
     }
+
+    @Override
+    public String toString() {
+        return "CDEventData{" +
+                "eventId='" + eventId + '\'' +
+                ", eventName='" + eventName + '\'' +
+                ", contextId='" + contextId + '\'' +
+                ", triggerId='" + triggerId + '\'' +
+                ", subject='" + subject + '\'' +
+                ", artifactId='" + artifactId + '\'' +
+                ", artifactName='" + artifactName + '\'' +
+                '}';
+    }
 }
