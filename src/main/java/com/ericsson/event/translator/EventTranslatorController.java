@@ -67,9 +67,15 @@ public class EventTranslatorController {
         //3. curl -H "Content-Type: application/json" -X POST --data @event.json  "http://eiffel-remrem-publish:8080/generateAndPublish?mp=eiffelsemantics&msgType=EiffelArtifactPublishedEvent"
 
        try{
-           if (inputEvent.getType().equals(CDEventEnums.PipelineRunFinishedEventV1.getEventType())) {
-               log.info("Received Pipelinerun finished CDEvent - {} ", CDEventEnums.PipelineRunFinishedEventV1.getEventType());
-               String eiffelActFEventJson = buildEiffelActivityFinishedEvent(inputEvent);
+           String ceDataJsonString =
+                   new String(inputEvent.getData().toBytes(), StandardCharsets.UTF_8);
+            log.info("invoked translateToEiffelEvent()");
+           Map<String, Object> ceDataMap = objectMapper.readValue(ceDataJsonString, HashMap.class);
+           if (inputEvent.getType().equals(CDEventEnums.PipelineRunFinishedEventV1.getEventType()) && ceDataMap.get("subject") != null && ceDataMap.get("subject").toString().equalsIgnoreCase("SpinnakerPipeline")) {
+               log.info("Received Pipelinerun finished CDEvent from Spinnaker - {} ", CDEventEnums.PipelineRunFinishedEventV1.getEventType());
+               log.info("Received CloudEvent Data ceDataJsonString {} ", ceDataJsonString);
+
+               String eiffelActFEventJson = buildEiffelActivityFinishedEvent(inputEvent.getId(), ceDataMap);
                if (eiffelActFEventJson.equals("")){
                    log.error("Error translating to eiffelActFEventJson");
                    return ResponseEntity.badRequest().build();
@@ -200,18 +206,7 @@ public class EventTranslatorController {
         return eiffelArtCEventJson;
     }
 
-    private String buildEiffelActivityFinishedEvent(CloudEvent inputEvent) throws IOException {
-
-        String ceDataJsonString =
-                new String(inputEvent.getData().toBytes(), StandardCharsets.UTF_8);
-        log.info("Received CloudEvent Data ceDataJsonString {} ", ceDataJsonString);
-        CDEventData cdEventData = objectMapper.readValue(inputEvent.getData().toBytes(), CDEventData.class);
-        log.info("Converted cdEventData {} ", cdEventData);
-        Map<String, Object> ceDataMap = objectMapper.readValue(ceDataJsonString, HashMap.class);
-        if (ceDataMap.get("artifactId")  != null && ceDataMap.get("artifactName")  != null ){
-            log.info("Received artifactId {}, ", ceDataMap.get("artifactId"));
-            log.info("Received artifactId {} artifactName {} ", ceDataMap.get("artifactId").toString(), ceDataMap.get("artifactName").toString());
-        }
+    private String buildEiffelActivityFinishedEvent(String eventID, Map<String, Object> ceDataMap) throws IOException {
 
         EiffelActivityFinishedEvent eiffelActFEvent = new EiffelActivityFinishedEvent();
         eiffelActFEvent.getMsgParams().getMeta().setType("EiffelActivityFinishedEvent");
@@ -219,7 +214,7 @@ public class EventTranslatorController {
 
         Link link = new Link();
         link.setType("ACTIVITY_EXECUTION");
-        link.setTarget(inputEvent.getId());
+        link.setTarget(eventID);
         eiffelActFEvent.getEventParams().getLinks().add(link);
 
         EiffelActivityFinishedEventOutcome outcome = new EiffelActivityFinishedEventOutcome();
