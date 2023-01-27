@@ -1,7 +1,6 @@
 package com.ericsson.event.translator.eiffel.models;
 
 import com.ericsson.eiffel.semantics.events.EiffelActivityFinishedEventData;
-import com.ericsson.eiffel.semantics.events.EiffelArtifactPublishedEventData;
 import com.ericsson.eiffel.semantics.events.Link;
 
 import java.util.ArrayList;

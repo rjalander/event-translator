@@ -1,21 +1,21 @@
 package com.ericsson.event.translator.eiffel.models;
 
-import com.ericsson.eiffel.semantics.events.EiffelArtifactCreatedEventData;
+import com.ericsson.eiffel.semantics.events.EiffelTestCaseFinishedEventData;
 import com.ericsson.eiffel.semantics.events.Link;
 
 import java.util.ArrayList;
 
-public class EiffelArtifactCreatedEventParams {
+public class EiffelTestCaseFinishedEventParams {
 
-    private EiffelArtifactCreatedEventData data = new EiffelArtifactCreatedEventData();
+    private EiffelTestCaseFinishedEventData data = new EiffelTestCaseFinishedEventData();
 
     private ArrayList<Link> links = new ArrayList<>();
 
-    public EiffelArtifactCreatedEventData getData() {
+    public EiffelTestCaseFinishedEventData getData() {
         return data;
     }
 
-    public void setData(EiffelArtifactCreatedEventData data) {
+    public void setData(EiffelTestCaseFinishedEventData data) {
         this.data = data;
     }
 
@@ -29,7 +29,7 @@ public class EiffelArtifactCreatedEventParams {
 
     @Override
     public String toString() {
-        return "EiffelArtifactPublishedEventParams{" +
+        return "EiffelTestCaseStartedEventParams{" +
                 "data=" + data +
                 ", links=" + links +
                 '}';

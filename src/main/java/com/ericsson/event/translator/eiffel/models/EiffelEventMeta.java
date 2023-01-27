@@ -5,9 +5,9 @@ import com.ericsson.eiffel.semantics.events.Source;
 import java.util.ArrayList;
 import java.util.List;
 
-public class EiffelArtifactCreatedEventMeta {
+public class EiffelEventMeta {
 
-    public EiffelArtifactCreatedEventMeta() {
+    public EiffelEventMeta() {
     }
 
     private String type;

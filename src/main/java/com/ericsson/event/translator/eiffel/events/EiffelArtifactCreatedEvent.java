@@ -1,15 +1,13 @@
 package com.ericsson.event.translator.eiffel.events;
 
 import com.ericsson.event.translator.eiffel.models.EiffelArtifactCreatedEventParams;
-import com.ericsson.event.translator.eiffel.models.EiffelArtifactCreatedMsgParams;
-import com.ericsson.event.translator.eiffel.models.EiffelArtifactPublishedEventParams;
-import com.ericsson.event.translator.eiffel.models.EiffelArtifactPublishedMsgParams;
+import com.ericsson.event.translator.eiffel.models.EiffelEventMsgParams;
 
 public class EiffelArtifactCreatedEvent {
     public EiffelArtifactCreatedEvent() {
     }
 
-    private EiffelArtifactCreatedMsgParams msgParams = new EiffelArtifactCreatedMsgParams();
+    private EiffelEventMsgParams msgParams = new EiffelEventMsgParams();
     private EiffelArtifactCreatedEventParams eventParams = new EiffelArtifactCreatedEventParams();
 
     public EiffelArtifactCreatedEventParams getEventParams() {
@@ -20,18 +18,19 @@ public class EiffelArtifactCreatedEvent {
         this.eventParams = eventParams;
     }
 
-    public EiffelArtifactCreatedMsgParams getMsgParams() {
+    public EiffelEventMsgParams getMsgParams() {
         return msgParams;
     }
 
-    public void setMsgParams(EiffelArtifactCreatedMsgParams msgParams) {
+    public void setMsgParams(EiffelEventMsgParams msgParams) {
         this.msgParams = msgParams;
     }
 
     @Override
     public String toString() {
-        return "EiffelArtifactPublishedEvent{" +
-                "eventParams=" + eventParams +
-                "} " + super.toString();
+        return "EiffelArtifactCreatedEvent{" +
+                "msgParams=" + msgParams +
+                ", eventParams=" + eventParams +
+                '}';
     }
 }

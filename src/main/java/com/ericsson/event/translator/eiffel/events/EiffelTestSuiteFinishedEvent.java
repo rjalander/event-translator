@@ -1,19 +1,20 @@
 package com.ericsson.event.translator.eiffel.events;
 
-import com.ericsson.event.translator.eiffel.models.*;
+import com.ericsson.event.translator.eiffel.models.EiffelEventMsgParams;
+import com.ericsson.event.translator.eiffel.models.EiffelTestSuiteFinishedEventParams;
 
-public class EiffelActivityFinishedEvent {
-    public EiffelActivityFinishedEvent() {
+public class EiffelTestSuiteFinishedEvent {
+    public EiffelTestSuiteFinishedEvent() {
     }
 
     private EiffelEventMsgParams msgParams = new EiffelEventMsgParams();
-    private EiffelActivityFinishedEventParams eventParams = new EiffelActivityFinishedEventParams();
+    private EiffelTestSuiteFinishedEventParams eventParams = new EiffelTestSuiteFinishedEventParams();
 
-    public EiffelActivityFinishedEventParams getEventParams() {
+    public EiffelTestSuiteFinishedEventParams getEventParams() {
         return eventParams;
     }
 
-    public void setEventParams(EiffelActivityFinishedEventParams eventParams) {
+    public void setEventParams(EiffelTestSuiteFinishedEventParams eventParams) {
         this.eventParams = eventParams;
     }
 
@@ -27,7 +28,7 @@ public class EiffelActivityFinishedEvent {
 
     @Override
     public String toString() {
-        return "EiffelActivityFinishedEvent{" +
+        return "EiffelTestCaseStartedEventParams{" +
                 "msgParams=" + msgParams +
                 ", eventParams=" + eventParams +
                 '}';
