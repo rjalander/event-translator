@@ -36,10 +36,13 @@ public class EiffelEventsTranslator {
     @Autowired
     private RabbitMQMsgSender rabbitMQMsgSender;
 
+    @Value("${remrem.publish.url}")
+    private String REMREM_PUBLISH_URL;
+
     public boolean translateToEiffelEvent(CloudEvent cdevent) {
         String cdeventType = cdevent.getType();
         String eiffelEventType = CDEVENT_TO_EIFFEL.get(cdeventType);
-        log.info("Translating CDEvent {} to EiffelEvent {}", cdeventType, eiffelEventType);
+        log.info("Translating from CDEvent {} to EiffelEvent {}", cdeventType, eiffelEventType);
         String eiffelEventJson = buildEiffelEventJson(cdevent, cdeventType);
         if (StringUtils.isEmpty(eiffelEventJson)){
             log.error("Error translating to EiffelEvent from CDEvent type {} ", cdeventType);
@@ -48,7 +51,7 @@ public class EiffelEventsTranslator {
         //rabbitMQMsgSender.send(eiffelEventJson);
         HttpStatus response = sendEiffelEventToRemRemPublish(eiffelEventJson, eiffelEventType);
         if (response == HttpStatus.OK) {
-            log.info("The result from REMReM Publish is: " + response);
+            log.info("Eiffel event {} is published to RemRem Publish URL - {}", eiffelEventType, REMREM_PUBLISH_URL);
         }else{
             log.error("Error sending Eiffel event to REMReM Publish response is {} ", response);
             return false;
@@ -56,8 +59,7 @@ public class EiffelEventsTranslator {
         return true;
     }
 
-    @Value("${remrem.publish.url}")
-    private String REMREM_PUBLISH_URL;
+
     public HttpStatus sendEiffelEventToRemRemPublish(String eiffelEventJson, String eiffelEventType) {
         String remRemPublishPostUrl = REMREM_PUBLISH_URL+"?mp=eiffelsemantics&msgType="+eiffelEventType;
         HttpHeaders headers = new HttpHeaders();

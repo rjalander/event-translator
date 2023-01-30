@@ -3,6 +3,8 @@ package com.ericsson.event.translator;
 
 import com.ericsson.event.translator.cdevent.CDEventsTranslator;
 import com.ericsson.event.translator.eiffel.EiffelEventsTranslator;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.cloudevents.CloudEvent;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +20,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping(value = "/translate")
 public class EventTranslatorController {
 
+    @Autowired
+    private ObjectMapper objectMapper;
     @Autowired
     CDEventsTranslator cdEventTranslator;
     @Autowired
@@ -41,7 +45,12 @@ public class EventTranslatorController {
     public ResponseEntity<Void> translateToCDEvent(@RequestBody String eiffelEventJson) {
         log.info("IN translateToCDEvent received eiffelEventJson {} ", eiffelEventJson);
         try {
-            cdEventTranslator.translateToCDEvent(eiffelEventJson);
+            JsonNode jsonNode = objectMapper.readTree(eiffelEventJson);
+            JsonNode metaObj = jsonNode.get("meta");
+            String eventType = metaObj.get("type").asText();
+
+            log.info("Eiffel event {} received to translate to CDEvent and publish", eventType);
+            cdEventTranslator.translateToCDEvent(eiffelEventJson, eventType);
         } catch (Exception e) {
             log.error("Exception occurred while translateToEiffelEvent {} ", e);
             return ResponseEntity.internalServerError().build();
