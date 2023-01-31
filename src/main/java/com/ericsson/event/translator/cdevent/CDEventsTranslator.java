@@ -21,6 +21,7 @@ import java.io.OutputStream;
 import java.io.UncheckedIOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.List;
 
 @Slf4j
 @Component
@@ -74,10 +75,18 @@ public class CDEventsTranslator {
     public CloudEvent createCDTestSuiteFinishedEvent(EiffelTestSuiteFinishedEvent eiffelTestSuiteFinishedEvent)
             throws IOException {
         log.info("Create TestSuiteFinished CDEvent from Eiffel event - {}", eiffelTestSuiteFinishedEvent.getMeta().getType());
-        CDEventData data = new CDEventData();
-        data.setSubject("cdevent_poc");
+        CDEventData cdEventData = new CDEventData();
+        eiffelTestSuiteFinishedEvent.getData().getCustomData().forEach(data -> {
+            if(data.getKey().equalsIgnoreCase("artifactid")){
+                cdEventData.setArtifactName(data.getValue().toString());
+            }else if(data.getKey().equalsIgnoreCase("artifactname")){
+                cdEventData.setArtifactId(data.getValue().toString());
+            }
+        });
+        cdEventData.setSubject("cdevent_poc");
+        log.info("TestSuiteFinished cdEventData is {} ", cdEventData.toString());
         objectMapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
-        CloudEvent cloudEvent = CDEventTypes.createTestEvent(CDEventEnums.TestSuiteFinishedEventV1.getEventType(), "testSuiteId", "poc", "3.0.0", objectMapper.writeValueAsString(data));
+        CloudEvent cloudEvent = CDEventTypes.createTestEvent(CDEventEnums.TestSuiteFinishedEventV1.getEventType(), "testSuiteId", "poc", "3.0.0", objectMapper.writeValueAsString(cdEventData));
         log.info("CDEvent testSuite finished Data {} ", cloudEvent.getData());
         return cloudEvent;
     }
