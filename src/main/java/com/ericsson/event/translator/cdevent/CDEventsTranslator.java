@@ -91,10 +91,6 @@ public class CDEventsTranslator {
         MessageWriter messageWriter = createMessageWriter(httpUrlConnection);
         messageWriter.writeBinary(ceToSend);
 
-//        if (httpUrlConnection.getResponseCode() / 100 != 2) {
-//            throw new RuntimeException(
-//                    "Failed : HTTP error code : " + httpUrlConnection.getResponseCode());
-//        }
         return httpUrlConnection;
     }
 
@@ -116,6 +112,4 @@ public class CDEventsTranslator {
                     }
                 });
     }
-
-
 }

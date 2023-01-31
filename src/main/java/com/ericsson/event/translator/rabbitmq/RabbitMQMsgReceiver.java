@@ -32,7 +32,7 @@ public class RabbitMQMsgReceiver {
         String eventJson =
                 new String(message, StandardCharsets.UTF_8);
         boolean isPublished = false;
-        log.info("CDEventsTranslator Received message from RabbitMQ <" + eventJson + ">");
+        log.info("RabbitMQMsgReceiver Received message from RabbitMQ <" + eventJson + ">");
         try {
             JsonNode jsonNode = objectMapper.readTree(eventJson);
             JsonNode metaObj = jsonNode.get("meta");
