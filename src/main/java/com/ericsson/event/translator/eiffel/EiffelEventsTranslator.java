@@ -10,6 +10,7 @@ import com.ericsson.event.translator.eiffel.events.EiffelSourceChangeCreatedEven
 import com.ericsson.event.translator.eiffel.events.EiffelSourceChangeSubmittedEvent;
 import com.ericsson.event.translator.eiffel.events.EiffelTestCaseStartedEvent;
 import com.ericsson.event.translator.rabbitmq.RabbitMQMsgSender;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.cdevents.CDEventEnums;
 import io.cloudevents.CloudEvent;
@@ -20,6 +21,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
+
+import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
 
 import static com.ericsson.event.translator.Constants.CDEVENT_TO_EIFFEL;
 
@@ -92,6 +97,9 @@ public class EiffelEventsTranslator {
         String eiffelActFEventJson = "";
         try {
             EiffelActivityFinishedEvent eiffelActFEvent = new EiffelActivityFinishedEvent();
+            //For Eiffel-CDEvents PoC purpose update the artifact details to show
+            updateArtifactDetailsPoC(cdevent, eiffelActFEvent);
+
             eiffelActFEvent.getMsgParams().getMeta().setType(EiffelActivityFinishedEventMeta.Type.EIFFEL_ACTIVITY_FINISHED_EVENT.value());
             eiffelActFEvent.getMsgParams().getMeta().setVersion(EiffelActivityFinishedEventMeta.Version._3_0_0.value());
             //To know the event is published by this translator
@@ -112,6 +120,27 @@ public class EiffelEventsTranslator {
         }
 
         return eiffelActFEventJson;
+    }
+
+    private void updateArtifactDetailsPoC(CloudEvent cdevent, EiffelActivityFinishedEvent eiffelActFEvent) throws JsonProcessingException {
+        String ceDataJsonString =
+                new String(cdevent.getData().toBytes(), StandardCharsets.UTF_8);
+        log.info("invoked translateToEiffelEvent()");
+        Map<String, Object> ceDataMap = objectMapper.readValue(ceDataJsonString, HashMap.class);
+
+        if (ceDataMap.get("artifactId")  != null){
+            CustomData customData = new CustomData();
+            customData.setKey("artifactid");
+            customData.setValue(ceDataMap.get("artifactId"));
+            eiffelActFEvent.getEventParams().getData().getCustomData().add(customData);
+        }
+
+        if (ceDataMap.get("artifactName") != null){
+            CustomData customData = new CustomData();
+            customData.setKey("artifactname");
+            customData.setValue(ceDataMap.get("artifactName"));
+            eiffelActFEvent.getEventParams().getData().getCustomData().add(customData);
+        }
     }
 
     private String buildEiffelTestCaseStartedEvent(CloudEvent inputEvent) {
