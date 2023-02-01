@@ -113,7 +113,7 @@ public class EiffelEventsTranslator {
             eiffelActFEvent.getEventParams().getData().setOutcome(outcome);
 
             eiffelActFEventJson = objectMapper.writeValueAsString(eiffelActFEvent);
-            log.info("Updated eiffelArtPEventJson - {}", eiffelActFEventJson);
+            log.info("Updated eiffelActFEventJson - {}", eiffelActFEventJson);
 
         } catch (Exception e) {
             log.error("Exception occurred while building EiffelActivityFinishedEvent from CDEvent {} ", e.getMessage());

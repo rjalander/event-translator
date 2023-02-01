@@ -2,6 +2,7 @@ package com.ericsson.event.translator.cdevent;
 
 import com.ericsson.eiffel.semantics.events.*;
 import com.ericsson.event.translator.Constants;
+import com.ericsson.event.translator.CustomObjectMapper;
 import com.ericsson.event.translator.cdevent.models.CDEventData;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -21,13 +22,12 @@ import java.io.OutputStream;
 import java.io.UncheckedIOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.List;
 
 @Slf4j
 @Component
 public class CDEventsTranslator {
     @Autowired
-    private ObjectMapper objectMapper;
+    private CustomObjectMapper objectMapper;
 
     @Value("${cloudevent.broker.url}")
     private String CLOUDEVENT_BROKER_URL;

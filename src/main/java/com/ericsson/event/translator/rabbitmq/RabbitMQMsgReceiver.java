@@ -42,7 +42,7 @@ public class RabbitMQMsgReceiver {
             ArrayNode tagsArrayNode = (ArrayNode) metaObj.get("tags");
             for (Iterator<JsonNode> iterator = tagsArrayNode.elements(); iterator.hasNext(); ) {
                 String tag = iterator.next().asText();
-                log.info("Eiffel event meta tag {}" +tag);
+                log.info("Eiffel event meta tag {}", tag);
                 if(tag.equalsIgnoreCase("published")){
                     isPublished = true;
                     break;
